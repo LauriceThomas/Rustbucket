@@ -4,17 +4,12 @@ using UnityEngine;
 
 public class EnemyAI : MonoBehaviour
 {
-    private Rigidbody2D rb;         //Player rigidbody 
-    public Rigidbody2D bullet2D;   //Projectile field 
-    public float speed = 1.0f;      //Set speed of chase 
-    public float shootRate = 1.0f;  //Shooting speed 
 
+    private Rigidbody2D rb;          //Enemy rigidbody
+    public float speed = 1.0f;      //Set speed of chase 
+    
     public bool spotPlayer = false; //spotPlayer default false 
 
-
-
-    public Transform weapon;        //Gun object field 
-    public Transform bullet;     //Projectile object field 
     public Transform target;        //Player is target 
     public Transform[] nodes;       //Set Position For Enemy to return to / Controls Patrol Points
     public Transform eyes,          //Assign gameObjs to these variables for manipulation
@@ -25,53 +20,49 @@ public class EnemyAI : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
     }
 
+    void Start()
+    {
+   
+    }
+
     void Update()
     {
-        sensePlayer();  //Function Sense Player in range
-        chase();        //Chase player when sensePlayer is true
+        sensePlayer();      //Function Sense Player in range
+        playerAbove();      //Check if player landed on spikes on enemy head
+        chase();            //Chase player when sensePlayer is true
     }
 
-    void sensePlayer()
+    public bool sensePlayer()
     {
         //Draw Line for Programmer Reference (Does not show up in Game window)
-        Debug.DrawLine(eyes.position, eyeRange.position, Color.cyan);
-        //spotPlayer "sees" player when true
-        spotPlayer = Physics2D.Linecast(eyes.position, eyeRange.position, 1 << LayerMask.NameToLayer("Player"));
-
+        Debug.DrawLine(eyes.position, eyeRange.position, Color.cyan);   
+        //spotPlayer "sees" player when true (start, end, object/item)
+        return (spotPlayer = Physics2D.Linecast(eyes.position, eyeRange.position, 1 << LayerMask.NameToLayer("Player")));
     }
 
-    void weaponShoot()
+    bool playerAbove()
     {
-        Debug.DrawLine(eyes.position, eyeRange.position, Color.red);    //Draw Line
-        //If player spotted, shoot at them.  Bullet travels through line cast to hit Player
-        if (spotPlayer == true)
+        Vector2 position = transform.position;
+        Vector2 direction = Vector2.up;
+        float distance = 0.5f;
+
+        RaycastHit2D hit = Physics2D.Raycast(position, direction, distance, 1 << LayerMask.NameToLayer("Player"));   //change ground layer to player layer
+        if (hit.collider != null)
         {
-            //laserBeam = Instantiate();
+            return true;
         }
-
-        //Player loses hit points with each hit.
-
-
+        return false;
     }
 
     void chase()
     {
         //The moment the enemy can "see" the player, trigger enemy chase
-        if (spotPlayer == true)
+        if(spotPlayer == true)
         {
             //Chase the player
             transform.position = Vector2.MoveTowards(transform.position, target.position, speed * Time.deltaTime);
         }
-        else
-        {
-
-            //transform.eulerAngles = new Vector2(0,180);
-        }
     }
 
-    void patrol()
-    {
-        //Patrol between two nodes when player is out of range
 
-    }
 }
